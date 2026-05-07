@@ -6,13 +6,12 @@
 
   <title>登山道調査マップ</title>
 
-  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   >
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=photo1">
 </head>
 
 <body>
@@ -100,19 +99,19 @@
         </label>
 
         <label>
-  写真
-  <input
-    type="file"
-    id="trail-photo-file"
-    name="photo"
-    form="trail-photo-upload-form"
-    accept="image/*"
-    capture="environment"
-  >
-  <div id="trail-photo-status" class="trail-photo-status">
-    写真を選択しない場合は、写真なしで保存されます。
-  </div>
-</label>
+          写真
+          <input
+            type="file"
+            id="trail-photo-file"
+            name="photo"
+            form="trail-photo-upload-form"
+            accept="image/*"
+            capture="environment"
+          >
+          <div id="trail-photo-status" class="trail-photo-status">
+            写真を選択しない場合は、写真なしで保存されます。
+          </div>
+        </label>
 
         <label>
           メモ
@@ -126,31 +125,32 @@
       </form>
     </div>
   </div>
-<!-- 写真アップロード専用：隠しフォーム -->
-<form
-  id="trail-photo-upload-form"
-  method="post"
-  enctype="multipart/form-data"
-  target="trail-upload-iframe"
-  style="display: none;"
->
-  <input type="hidden" name="action" value="uploadTrailPhoto">
-  <input type="hidden" name="upload_token" id="trail-upload-token">
-  <input type="hidden" name="point_name" id="trail-upload-point-name">
-  <input type="hidden" name="mountain_area" id="trail-upload-mountain-area">
-  <input type="hidden" name="trail_name" id="trail-upload-trail-name">
-</form>
 
-<iframe
-  id="trail-upload-iframe"
-  name="trail-upload-iframe"
-  style="display: none;"
-></iframe>
-  <!-- Leaflet JS -->
+  <!-- 写真アップロード専用：隠しフォーム -->
+  <form
+    id="trail-photo-upload-form"
+    method="post"
+    enctype="multipart/form-data"
+    target="trail-upload-iframe"
+    style="display: none;"
+  >
+    <input type="hidden" name="action" value="uploadTrailPhoto">
+    <input type="hidden" name="upload_token" id="trail-upload-token">
+    <input type="hidden" name="point_name" id="trail-upload-point-name">
+    <input type="hidden" name="mountain_area" id="trail-upload-mountain-area">
+    <input type="hidden" name="trail_name" id="trail-upload-trail-name">
+  </form>
+
+  <iframe
+    id="trail-upload-iframe"
+    name="trail-upload-iframe"
+    style="display: none;"
+  ></iframe>
+
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
   </script>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=photo1"></script>
 </body>
 </html>

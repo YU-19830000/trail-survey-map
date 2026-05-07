@@ -153,6 +153,14 @@ main {
   cursor: wait;
 }
 
+.trail-photo-status {
+  margin-top: 6px;
+  color: #555555;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
 /* ==============================
    地図コントロール
 ============================== */
@@ -205,6 +213,7 @@ main {
 
 .trail-popup {
   min-width: 220px;
+  max-width: 280px;
   font-size: 13px;
   line-height: 1.6;
 }
@@ -221,14 +230,6 @@ main {
   margin: 6px 0;
 }
 
-.trail-photo-status {
-  margin-top: 6px;
-  color: #555555;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.5;
-}
-
 .trail-popup-photo {
   width: 100%;
   max-width: 260px;
@@ -236,5 +237,11 @@ main {
   object-fit: cover;
   border-radius: 10px;
   border: 1px solid #dddddd;
+  margin-top: 6px;
+  display: block;
+}
+
+.trail-popup-photo-link {
+  display: inline-block;
   margin-top: 6px;
 }

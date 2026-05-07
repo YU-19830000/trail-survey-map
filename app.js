@@ -1,5 +1,5 @@
 // ==============================
-// 登山道調査マップ app.js
+// 登山道調査マップ app.js 完全版
 // ==============================
 
 // GAS WebアプリURL
@@ -58,6 +58,7 @@ function initMap() {
 
 function initTrailSurvey() {
   setupTrailFormEvents();
+  setupTrailPhotoEvents();
   addTrailCurrentLocationControl();
   loadTrailMarkers();
 
@@ -92,7 +93,7 @@ function trailJsonp(action, params = {}) {
     const timer = setTimeout(function () {
       cleanup();
       reject(new Error('API通信がタイムアウトしました。'));
-    }, 15000);
+    }, 20000);
 
     function cleanup() {
       clearTimeout(timer);
@@ -194,7 +195,7 @@ function createTrailPopupHtml(marker) {
   const photoHtml = photoSrc
     ? `
       <hr>
-      <a href="${escapeAttribute(photoLink)}" target="_blank" rel="noopener">
+      <a class="trail-popup-photo-link" href="${escapeAttribute(photoLink)}" target="_blank" rel="noopener">
         <img
           class="trail-popup-photo"
           src="${escapeAttribute(photoSrc)}"
@@ -239,51 +240,49 @@ function setupTrailFormEvents() {
   cancelBtn.addEventListener('click', closeTrailForm);
 
   form.addEventListener('submit', async function (e) {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!trailPendingLatLng) {
-    alert('登録地点がありません。地図をタップしてください。');
-    return;
-  }
+    if (!trailPendingLatLng) {
+      alert('登録地点がありません。地図をタップしてください。');
+      return;
+    }
 
-  const submitBtn = document.getElementById('trail-form-submit');
-  submitBtn.disabled = true;
-  submitBtn.textContent = '保存中...';
+    const submitBtn = document.getElementById('trail-form-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '保存中...';
 
-  try {
-    const payload = buildTrailFormPayload();
+    try {
+      const payload = buildTrailFormPayload();
 
-    saveTrailDefaults(payload);
+      saveTrailDefaults(payload);
 
-    // 先に写真をDriveへアップロード
-    setTrailPhotoStatus('写真を確認中...');
+      setTrailPhotoStatus('写真を確認中...');
 
-    const photoResult = await uploadTrailPhotoIfNeeded(payload);
+      const photoResult = await uploadTrailPhotoIfNeeded(payload);
 
-    payload.photo_url = photoResult.file_url || '';
-    payload.photo_file_id = photoResult.file_id || '';
-    payload.photo_thumb_url = photoResult.thumbnail_url || '';
+      payload.photo_url = photoResult.file_url || '';
+      payload.photo_file_id = photoResult.file_id || '';
+      payload.photo_thumb_url = photoResult.thumbnail_url || '';
 
-    // その後、地点情報をスプレッドシートへ保存
-    setTrailPhotoStatus('地点情報を保存中...');
+      setTrailPhotoStatus('地点情報を保存中...');
 
-    const result = await trailJsonp('addTrailMarker', payload);
+      const result = await trailJsonp('addTrailMarker', payload);
 
-    addTrailMarkerToMap(result.marker);
-    closeTrailForm();
+      addTrailMarkerToMap(result.marker);
+      closeTrailForm();
 
-    alert('保存しました。');
+      alert('保存しました。');
 
-  } catch (error) {
-    console.error('登山道ポイント保存エラー:', error);
-    alert('保存に失敗しました。\n' + error.message);
+    } catch (error) {
+      console.error('登山道ポイント保存エラー:', error);
+      alert('保存に失敗しました。\n' + error.message);
 
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = '保存する';
-    setTrailPhotoStatus('写真を選択しない場合は、写真なしで保存されます。');
-  }
-});
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '保存する';
+      setTrailPhotoStatus('写真を選択しない場合は、写真なしで保存されます。');
+    }
+  });
 }
 
 function openTrailForm(latlng, accuracy) {
@@ -312,6 +311,7 @@ function closeTrailForm() {
   document.getElementById('trail-mobile-signal').value = '未確認';
 
   const photoFile = document.getElementById('trail-photo-file');
+
   if (photoFile) {
     photoFile.value = '';
   }
@@ -338,6 +338,122 @@ function buildTrailFormPayload() {
     memo: getValue('trail-memo'),
     source: '現地確認'
   };
+}
+
+// ==============================
+// 写真選択表示
+// ==============================
+
+function setupTrailPhotoEvents() {
+  const fileInput = document.getElementById('trail-photo-file');
+
+  if (!fileInput) {
+    return;
+  }
+
+  fileInput.addEventListener('change', function () {
+    if (!fileInput.files || fileInput.files.length === 0) {
+      setTrailPhotoStatus('写真を選択しない場合は、写真なしで保存されます。');
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const sizeMb = file.size / 1024 / 1024;
+
+    setTrailPhotoStatus(`選択中：${file.name}（${sizeMb.toFixed(1)}MB）`);
+  });
+}
+
+// ==============================
+// 写真アップロード
+// ==============================
+
+function uploadTrailPhotoIfNeeded(payload) {
+  const fileInput = document.getElementById('trail-photo-file');
+
+  if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+    return Promise.resolve({
+      file_url: '',
+      file_id: '',
+      thumbnail_url: ''
+    });
+  }
+
+  const file = fileInput.files[0];
+
+  if (!file.type || file.type.indexOf('image/') !== 0) {
+    return Promise.reject(new Error('画像ファイルを選択してください。'));
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    return Promise.reject(new Error('写真サイズが大きすぎます。10MB以下の写真を選択してください。'));
+  }
+
+  return new Promise(function (resolve, reject) {
+    const token =
+      'upload_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+
+    const uploadForm = document.getElementById('trail-photo-upload-form');
+
+    document.getElementById('trail-upload-token').value = token;
+    document.getElementById('trail-upload-point-name').value = payload.point_name || '';
+    document.getElementById('trail-upload-mountain-area').value = payload.mountain_area || '';
+    document.getElementById('trail-upload-trail-name').value = payload.trail_name || '';
+
+    uploadForm.action = TRAIL_API_URL;
+
+    const timer = setTimeout(function () {
+      cleanup();
+      reject(new Error('写真アップロードがタイムアウトしました。'));
+    }, 60000);
+
+    function cleanup() {
+      clearTimeout(timer);
+      window.removeEventListener('message', onMessage);
+    }
+
+    function onMessage(event) {
+      let data = event.data;
+
+      if (typeof data === 'string') {
+        try {
+          data = JSON.parse(data);
+        } catch (e) {
+          return;
+        }
+      }
+
+      if (!data || data.source !== 'trailPhotoUpload') {
+        return;
+      }
+
+      if (data.upload_token !== token) {
+        return;
+      }
+
+      cleanup();
+
+      if (data.ok) {
+        resolve(data);
+      } else {
+        reject(new Error(data.error || '写真アップロードに失敗しました。'));
+      }
+    }
+
+    window.addEventListener('message', onMessage);
+
+    setTrailPhotoStatus('写真をアップロード中...');
+
+    uploadForm.submit();
+  });
+}
+
+function setTrailPhotoStatus(message) {
+  const el = document.getElementById('trail-photo-status');
+
+  if (el) {
+    el.textContent = message;
+  }
 }
 
 // ==============================
@@ -456,89 +572,4 @@ function escapeHtml(value) {
 
 function escapeAttribute(value) {
   return escapeHtml(value).replace(/`/g, '&#096;');
-}
-
-// ==============================
-// 写真アップロード
-// ==============================
-
-function uploadTrailPhotoIfNeeded(payload) {
-  const fileInput = document.getElementById('trail-photo-file');
-
-  if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-    return Promise.resolve({
-      file_url: '',
-      file_id: '',
-      thumbnail_url: ''
-    });
-  }
-
-  const file = fileInput.files[0];
-
-  if (!file.type || file.type.indexOf('image/') !== 0) {
-    return Promise.reject(new Error('画像ファイルを選択してください。'));
-  }
-
-  if (file.size > 10 * 1024 * 1024) {
-    return Promise.reject(new Error('写真サイズが大きすぎます。10MB以下の写真を選択してください。'));
-  }
-
-  return new Promise(function (resolve, reject) {
-    const token =
-      'upload_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-
-    const form = document.getElementById('trail-photo-upload-form');
-
-    document.getElementById('trail-upload-token').value = token;
-    document.getElementById('trail-upload-point-name').value = payload.point_name || '';
-    document.getElementById('trail-upload-mountain-area').value = payload.mountain_area || '';
-    document.getElementById('trail-upload-trail-name').value = payload.trail_name || '';
-
-    form.action = TRAIL_API_URL;
-
-    const timer = setTimeout(function () {
-      cleanup();
-      reject(new Error('写真アップロードがタイムアウトしました。'));
-    }, 30000);
-
-    function cleanup() {
-      clearTimeout(timer);
-      window.removeEventListener('message', onMessage);
-    }
-
-    function onMessage(event) {
-      const data = event.data;
-
-      if (!data || data.source !== 'trailPhotoUpload') {
-        return;
-      }
-
-      if (data.upload_token !== token) {
-        return;
-      }
-
-      cleanup();
-
-      if (data.ok) {
-        resolve(data);
-      } else {
-        reject(new Error(data.error || '写真アップロードに失敗しました。'));
-      }
-    }
-
-    window.addEventListener('message', onMessage);
-
-    setTrailPhotoStatus('写真をアップロード中...');
-
-    form.submit();
-  });
-}
-
-
-function setTrailPhotoStatus(message) {
-  const el = document.getElementById('trail-photo-status');
-
-  if (el) {
-    el.textContent = message;
-  }
 }
