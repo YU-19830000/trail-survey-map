@@ -301,11 +301,19 @@ function closeTrailForm() {
 
   const photoFile = document.getElementById('trail-photo-file');
 
-  if (photoFile) {
-    photoFile.value = '';
-  }
+if (photoFile) {
+  photoFile.value = '';
+}
 
-  setTrailPhotoStatus('写真を選択しない場合は、写真なしで保存されます。');
+const photoBase64 = document.getElementById('trail-photo-base64');
+const photoMime = document.getElementById('trail-photo-mime-type');
+const photoName = document.getElementById('trail-photo-original-name');
+
+if (photoBase64) photoBase64.value = '';
+if (photoMime) photoMime.value = '';
+if (photoName) photoName.value = '';
+
+setTrailPhotoStatus('写真を選択しない場合は、写真なしで保存されます。');
 }
 
 function buildTrailFormPayload() {
@@ -579,48 +587,173 @@ function saveTrailMarkerWithPhotoForm() {
     document.getElementById('trail-hidden-lng').value = trailPendingLatLng.lng;
     document.getElementById('trail-hidden-accuracy').value = trailPendingAccuracy || '';
 
-    form.action = TRAIL_API_URL;
+    setTrailPhotoStatus('写真を処理中...');
 
-    const timer = setTimeout(function () {
-      cleanup();
-      reject(new Error('保存処理がタイムアウトしました。'));
-    }, 60000);
+    prepareTrailPhotoBase64()
+      .then(function () {
+        form.action = TRAIL_API_URL;
 
-    function cleanup() {
-      clearTimeout(timer);
-      window.removeEventListener('message', onMessage);
-    }
+        const timer = setTimeout(function () {
+          cleanup();
+          reject(new Error('保存処理がタイムアウトしました。'));
+        }, 60000);
 
-    function onMessage(event) {
-      let data = event.data;
-
-      if (typeof data === 'string') {
-        try {
-          data = JSON.parse(data);
-        } catch (e) {
-          return;
+        function cleanup() {
+          clearTimeout(timer);
+          window.removeEventListener('message', onMessage);
         }
-      }
 
-      if (!data || data.source !== 'trailMarkerSave') {
-        return;
-      }
+        function onMessage(event) {
+          let data = event.data;
 
-      if (data.upload_token !== token) {
-        return;
-      }
+          if (typeof data === 'string') {
+            try {
+              data = JSON.parse(data);
+            } catch (e) {
+              return;
+            }
+          }
 
-      cleanup();
+          if (!data || data.source !== 'trailMarkerSave') {
+            return;
+          }
 
-      if (data.ok) {
-        resolve(data);
-      } else {
-        reject(new Error(data.error || '保存に失敗しました。'));
-      }
+          if (data.upload_token !== token) {
+            return;
+          }
+
+          cleanup();
+
+          if (data.ok) {
+            resolve(data);
+          } else {
+            reject(new Error(data.error || '保存に失敗しました。'));
+          }
+        }
+
+        window.addEventListener('message', onMessage);
+
+        setTrailPhotoStatus('保存中...');
+
+        form.submit();
+      })
+      .catch(function (error) {
+        reject(error);
+      });
+  });
+}
+
+// ==============================
+// 写真をJPEG圧縮してBase64化
+// ==============================
+
+function prepareTrailPhotoBase64() {
+  return new Promise(function (resolve, reject) {
+    const fileInput = document.getElementById('trail-photo-file');
+    const base64Input = document.getElementById('trail-photo-base64');
+    const mimeInput = document.getElementById('trail-photo-mime-type');
+    const nameInput = document.getElementById('trail-photo-original-name');
+
+    // 初期化
+    base64Input.value = '';
+    mimeInput.value = '';
+    nameInput.value = '';
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+      resolve();
+      return;
     }
 
-    window.addEventListener('message', onMessage);
+    const file = fileInput.files[0];
 
-    form.submit();
+    if (!file.type || file.type.indexOf('image/') !== 0) {
+      reject(new Error('画像ファイルを選択してください。'));
+      return;
+    }
+
+    // 元画像が大きすぎる場合は早めに止める
+    if (file.size > 20 * 1024 * 1024) {
+      reject(new Error('元写真が大きすぎます。20MB以下の写真を選択してください。'));
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function (event) {
+      const img = new Image();
+
+      img.onload = function () {
+        try {
+          const compressed = compressImageToJpegBase64(img, 1600, 0.72);
+
+          base64Input.value = compressed.base64;
+          mimeInput.value = 'image/jpeg';
+          nameInput.value = file.name || 'photo.jpg';
+
+          const approxKb = Math.round((compressed.base64.length * 3 / 4) / 1024);
+          setTrailPhotoStatus(`写真圧縮完了：約${approxKb}KB`);
+
+          resolve();
+
+        } catch (error) {
+          reject(error);
+        }
+      };
+
+      img.onerror = function () {
+        reject(new Error('写真の読み込みに失敗しました。別の写真で試してください。'));
+      };
+
+      img.src = event.target.result;
+    };
+
+    reader.onerror = function () {
+      reject(new Error('写真ファイルの読み込みに失敗しました。'));
+    };
+
+    reader.readAsDataURL(file);
   });
+}
+
+
+function compressImageToJpegBase64(img, maxSize, quality) {
+  const originalWidth = img.naturalWidth || img.width;
+  const originalHeight = img.naturalHeight || img.height;
+
+  if (!originalWidth || !originalHeight) {
+    throw new Error('写真サイズを取得できませんでした。');
+  }
+
+  let width = originalWidth;
+  let height = originalHeight;
+
+  const longerSide = Math.max(width, height);
+
+  if (longerSide > maxSize) {
+    const scale = maxSize / longerSide;
+    width = Math.round(width * scale);
+    height = Math.round(height * scale);
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) {
+    throw new Error('画像処理に失敗しました。');
+  }
+
+  ctx.drawImage(img, 0, 0, width, height);
+
+  const dataUrl = canvas.toDataURL('image/jpeg', quality);
+
+  const base64 = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+
+  return {
+    base64: base64,
+    width: width,
+    height: height
+  };
 }

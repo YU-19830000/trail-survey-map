@@ -37,7 +37,6 @@
       <form
   id="trail-form"
   method="post"
-  enctype="multipart/form-data"
   target="trail-upload-iframe"
 >
   <input type="hidden" name="action" value="saveTrailMarkerWithPhoto">
@@ -47,6 +46,11 @@
   <input type="hidden" name="accuracy" id="trail-hidden-accuracy">
   <input type="hidden" name="status" value="有効">
   <input type="hidden" name="source" value="現地確認">
+
+  <!-- 写真はファイル本体ではなく、圧縮後Base64で送る -->
+  <input type="hidden" name="photo_base64" id="trail-photo-base64">
+  <input type="hidden" name="photo_mime_type" id="trail-photo-mime-type">
+  <input type="hidden" name="photo_original_name" id="trail-photo-original-name">
         <div class="trail-latlng-box">
           <div>緯度：<span id="trail-lat-view"></span></div>
           <div>経度：<span id="trail-lng-view"></span></div>
@@ -113,12 +117,11 @@
         <label>
   写真
   <input
-    type="file"
-    id="trail-photo-file"
-    name="photo"
-    accept="image/*"
-    capture="environment"
-  >
+  type="file"
+  id="trail-photo-file"
+  accept="image/*"
+  capture="environment"
+>
   <div id="trail-photo-status" class="trail-photo-status">
     写真を選択しない場合は、写真なしで保存されます。
   </div>
@@ -126,7 +129,7 @@
 
         <label>
           メモ
-          <textarea id="trail-memo" rows="4" placeholder="現地状況、注意点、看板の有無など"></textarea>
+          <textarea id="trail-memo" name="memo" rows="4" placeholder="現地状況、注意点、看板の有無など"></textarea>
         </label>
 
         <div class="trail-form-actions">
@@ -138,19 +141,7 @@
   </div>
 
   <!-- 写真アップロード専用：隠しフォーム -->
-  <form
-    id="trail-photo-upload-form"
-    method="post"
-    enctype="multipart/form-data"
-    target="trail-upload-iframe"
-    style="display: none;"
-  >
-    <input type="hidden" name="action" value="uploadTrailPhoto">
-    <input type="hidden" name="upload_token" id="trail-upload-token">
-    <input type="hidden" name="point_name" id="trail-upload-point-name">
-    <input type="hidden" name="mountain_area" id="trail-upload-mountain-area">
-    <input type="hidden" name="trail_name" id="trail-upload-trail-name">
-  </form>
+  
 
   <iframe
     id="trail-upload-iframe"
