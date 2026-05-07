@@ -239,50 +239,39 @@ function setupTrailFormEvents() {
   closeBtn.addEventListener('click', closeTrailForm);
   cancelBtn.addEventListener('click', closeTrailForm);
 
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
+  form.addEventListener('submit', function (e) {
+  e.preventDefault();
 
-    if (!trailPendingLatLng) {
-      alert('登録地点がありません。地図をタップしてください。');
-      return;
-    }
+  if (!trailPendingLatLng) {
+    alert('登録地点がありません。地図をタップしてください。');
+    return;
+  }
 
-    const submitBtn = document.getElementById('trail-form-submit');
-    submitBtn.disabled = true;
-    submitBtn.textContent = '保存中...';
+  const submitBtn = document.getElementById('trail-form-submit');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '保存中...';
 
-    try {
-      const payload = buildTrailFormPayload();
+  const payload = buildTrailFormPayload();
+  saveTrailDefaults(payload);
 
-      saveTrailDefaults(payload);
+  setTrailPhotoStatus('保存中...');
 
-      setTrailPhotoStatus('写真を確認中...');
-
-      const photoResult = await uploadTrailPhotoIfNeeded(payload);
-
-      payload.photo_url = photoResult.file_url || '';
-      payload.photo_file_id = photoResult.file_id || '';
-      payload.photo_thumb_url = photoResult.thumbnail_url || '';
-
-      setTrailPhotoStatus('地点情報を保存中...');
-
-      const result = await trailJsonp('addTrailMarker', payload);
-
+  saveTrailMarkerWithPhotoForm()
+    .then(function (result) {
       addTrailMarkerToMap(result.marker);
       closeTrailForm();
-
       alert('保存しました。');
-
-    } catch (error) {
-      console.error('登山道ポイント保存エラー:', error);
+    })
+    .catch(function (error) {
+      console.error('保存エラー:', error);
       alert('保存に失敗しました。\n' + error.message);
-
-    } finally {
+    })
+    .finally(function () {
       submitBtn.disabled = false;
       submitBtn.textContent = '保存する';
       setTrailPhotoStatus('写真を選択しない場合は、写真なしで保存されます。');
-    }
-  });
+    });
+});
 }
 
 function openTrailForm(latlng, accuracy) {
@@ -572,4 +561,66 @@ function escapeHtml(value) {
 
 function escapeAttribute(value) {
   return escapeHtml(value).replace(/`/g, '&#096;');
+}
+
+// ==============================
+// 写真つき地点登録フォーム送信
+// ==============================
+
+function saveTrailMarkerWithPhotoForm() {
+  return new Promise(function (resolve, reject) {
+    const form = document.getElementById('trail-form');
+
+    const token =
+      'marker_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+
+    document.getElementById('trail-upload-token').value = token;
+    document.getElementById('trail-hidden-lat').value = trailPendingLatLng.lat;
+    document.getElementById('trail-hidden-lng').value = trailPendingLatLng.lng;
+    document.getElementById('trail-hidden-accuracy').value = trailPendingAccuracy || '';
+
+    form.action = TRAIL_API_URL;
+
+    const timer = setTimeout(function () {
+      cleanup();
+      reject(new Error('保存処理がタイムアウトしました。'));
+    }, 60000);
+
+    function cleanup() {
+      clearTimeout(timer);
+      window.removeEventListener('message', onMessage);
+    }
+
+    function onMessage(event) {
+      let data = event.data;
+
+      if (typeof data === 'string') {
+        try {
+          data = JSON.parse(data);
+        } catch (e) {
+          return;
+        }
+      }
+
+      if (!data || data.source !== 'trailMarkerSave') {
+        return;
+      }
+
+      if (data.upload_token !== token) {
+        return;
+      }
+
+      cleanup();
+
+      if (data.ok) {
+        resolve(data);
+      } else {
+        reject(new Error(data.error || '保存に失敗しました。'));
+      }
+    }
+
+    window.addEventListener('message', onMessage);
+
+    form.submit();
+  });
 }

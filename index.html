@@ -34,7 +34,19 @@
         <button type="button" id="trail-form-close">×</button>
       </div>
 
-      <form id="trail-form">
+      <form
+  id="trail-form"
+  method="post"
+  enctype="multipart/form-data"
+  target="trail-upload-iframe"
+>
+  <input type="hidden" name="action" value="saveTrailMarkerWithPhoto">
+  <input type="hidden" name="upload_token" id="trail-upload-token">
+  <input type="hidden" name="lat" id="trail-hidden-lat">
+  <input type="hidden" name="lng" id="trail-hidden-lng">
+  <input type="hidden" name="accuracy" id="trail-hidden-accuracy">
+  <input type="hidden" name="status" value="有効">
+  <input type="hidden" name="source" value="現地確認">
         <div class="trail-latlng-box">
           <div>緯度：<span id="trail-lat-view"></span></div>
           <div>経度：<span id="trail-lng-view"></span></div>
@@ -43,22 +55,22 @@
 
         <label>
           調査者名
-          <input type="text" id="trail-user-name" placeholder="例：上松">
+          <input type="text" id="trail-user-name" name="user_name" placeholder="例：上松">
         </label>
 
         <label>
           山域・地区名
-          <input type="text" id="trail-mountain-area" placeholder="例：各務原アルプス">
+          <input type="text" id="trail-mountain-area" name="mountain_area" placeholder="例：各務原アルプス">
         </label>
 
         <label>
           登山道名・ルート名
-          <input type="text" id="trail-name" placeholder="例：迫間山ルート">
+          <input type="text" id="trail-name" name="trail_name" placeholder="例：迫間山ルート">
         </label>
 
         <label>
           地点種別
-          <select id="trail-point-type" required>
+          <select id="trail-point-type" name="point_type" required>
             <option value="登山口">登山口</option>
             <option value="駐車場">駐車場</option>
             <option value="トイレ">トイレ</option>
@@ -74,12 +86,12 @@
 
         <label>
           地点名称
-          <input type="text" id="trail-point-name" placeholder="例：○○登山口、△△分岐">
+          <input type="text" id="trail-point-name" name="point_name" placeholder="例：○○登山口、△△分岐">
         </label>
 
         <label>
           状態
-          <select id="trail-condition">
+          <select id="trail-condition" name="condition">
             <option value="良好">良好</option>
             <option value="注意">注意</option>
             <option value="危険">危険</option>
@@ -90,7 +102,7 @@
 
         <label>
           携帯電波
-          <select id="trail-mobile-signal">
+          <select id="trail-mobile-signal" name="mobile_signal">
             <option value="良好">良好</option>
             <option value="弱い">弱い</option>
             <option value="圏外">圏外</option>
@@ -99,19 +111,18 @@
         </label>
 
         <label>
-          写真
-          <input
-            type="file"
-            id="trail-photo-file"
-            name="photo"
-            form="trail-photo-upload-form"
-            accept="image/*"
-            capture="environment"
-          >
-          <div id="trail-photo-status" class="trail-photo-status">
-            写真を選択しない場合は、写真なしで保存されます。
-          </div>
-        </label>
+  写真
+  <input
+    type="file"
+    id="trail-photo-file"
+    name="photo"
+    accept="image/*"
+    capture="environment"
+  >
+  <div id="trail-photo-status" class="trail-photo-status">
+    写真を選択しない場合は、写真なしで保存されます。
+  </div>
+</label>
 
         <label>
           メモ
