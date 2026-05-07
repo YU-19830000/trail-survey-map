@@ -1,0 +1,222 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f5f5f5;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: #2e7d32;
+  color: #ffffff;
+  padding: 10px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.app-header p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+main {
+  flex: 1;
+  min-height: 0;
+}
+
+#map {
+  width: 100%;
+  height: calc(100dvh - 62px);
+}
+
+/* ==============================
+   登山道調査フォーム
+============================== */
+
+.trail-hidden {
+  display: none !important;
+}
+
+#trail-form-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+#trail-form-panel {
+  width: 100%;
+  max-width: 540px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 18px 18px 0 0;
+  padding: 16px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.trail-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.trail-form-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+#trail-form-close {
+  border: none;
+  background: #eeeeee;
+  font-size: 22px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+#trail-form label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+#trail-form input,
+#trail-form select,
+#trail-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 5px;
+  padding: 11px;
+  font-size: 16px;
+  border: 1px solid #cccccc;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.trail-latlng-box {
+  background: #f4f7f4;
+  border: 1px solid #d6e6d6;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.trail-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.trail-form-actions button {
+  flex: 1;
+  padding: 13px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#trail-form-cancel {
+  background: #e5e5e5;
+  color: #222222;
+}
+
+#trail-form-submit {
+  background: #2e7d32;
+  color: #ffffff;
+}
+
+#trail-form-submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* ==============================
+   地図コントロール
+============================== */
+
+.trail-location-control {
+  background: #ffffff;
+  padding: 6px;
+  border-radius: 8px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+}
+
+.trail-location-control button {
+  border: none;
+  background: #2e7d32;
+  color: #ffffff;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ==============================
+   登山道マーカー
+============================== */
+
+.trail-marker-icon {
+  width: 30px;
+  height: 30px;
+}
+
+.trail-marker-pin {
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trail-marker-pin span {
+  transform: rotate(45deg);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.trail-popup {
+  min-width: 220px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.trail-popup-title {
+  font-weight: 800;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.trail-popup hr {
+  border: none;
+  border-top: 1px solid #dddddd;
+  margin: 6px 0;
+}

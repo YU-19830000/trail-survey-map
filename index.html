@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>登山道調査マップ</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  >
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <header class="app-header">
+    <div>
+      <h1>登山道調査マップ</h1>
+      <p>登山口・分岐・危険箇所・道標などを記録</p>
+    </div>
+  </header>
+
+  <main>
+    <div id="map"></div>
+  </main>
+
+  <!-- 登山道調査フォーム -->
+  <div id="trail-form-backdrop" class="trail-hidden">
+    <div id="trail-form-panel">
+      <div class="trail-form-header">
+        <h2>登山道ポイント登録</h2>
+        <button type="button" id="trail-form-close">×</button>
+      </div>
+
+      <form id="trail-form">
+        <div class="trail-latlng-box">
+          <div>緯度：<span id="trail-lat-view"></span></div>
+          <div>経度：<span id="trail-lng-view"></span></div>
+          <div>GPS精度：<span id="trail-accuracy-view">未取得</span></div>
+        </div>
+
+        <label>
+          調査者名
+          <input type="text" id="trail-user-name" placeholder="例：上松">
+        </label>
+
+        <label>
+          山域・地区名
+          <input type="text" id="trail-mountain-area" placeholder="例：各務原アルプス">
+        </label>
+
+        <label>
+          登山道名・ルート名
+          <input type="text" id="trail-name" placeholder="例：迫間山ルート">
+        </label>
+
+        <label>
+          地点種別
+          <select id="trail-point-type" required>
+            <option value="登山口">登山口</option>
+            <option value="駐車場">駐車場</option>
+            <option value="トイレ">トイレ</option>
+            <option value="分岐">分岐</option>
+            <option value="道標">道標</option>
+            <option value="危険箇所">危険箇所</option>
+            <option value="休憩地点">休憩地点</option>
+            <option value="水場">水場</option>
+            <option value="携帯電波">携帯電波</option>
+            <option value="その他">その他</option>
+          </select>
+        </label>
+
+        <label>
+          地点名称
+          <input type="text" id="trail-point-name" placeholder="例：○○登山口、△△分岐">
+        </label>
+
+        <label>
+          状態
+          <select id="trail-condition">
+            <option value="良好">良好</option>
+            <option value="注意">注意</option>
+            <option value="危険">危険</option>
+            <option value="通行困難">通行困難</option>
+            <option value="要確認" selected>要確認</option>
+          </select>
+        </label>
+
+        <label>
+          携帯電波
+          <select id="trail-mobile-signal">
+            <option value="良好">良好</option>
+            <option value="弱い">弱い</option>
+            <option value="圏外">圏外</option>
+            <option value="未確認" selected>未確認</option>
+          </select>
+        </label>
+
+        <label>
+          写真URL
+          <input type="url" id="trail-photo-url" placeholder="Google Drive等の共有URL">
+        </label>
+
+        <label>
+          メモ
+          <textarea id="trail-memo" rows="4" placeholder="現地状況、注意点、看板の有無など"></textarea>
+        </label>
+
+        <div class="trail-form-actions">
+          <button type="button" id="trail-form-cancel">キャンセル</button>
+          <button type="submit" id="trail-form-submit">保存する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+  </script>
+
+  <script src="app.js"></script>
+</body>
+</html>
