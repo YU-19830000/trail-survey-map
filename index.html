@@ -11,7 +11,7 @@
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   >
 
-  <link rel="stylesheet" href="style.css?v=photo1">
+  <link rel="stylesheet" href="style.css?v=base64photo1">
 </head>
 
 <body>
@@ -26,7 +26,6 @@
     <div id="map"></div>
   </main>
 
-  <!-- 登山道調査フォーム -->
   <div id="trail-form-backdrop" class="trail-hidden">
     <div id="trail-form-panel">
       <div class="trail-form-header">
@@ -35,22 +34,22 @@
       </div>
 
       <form
-  id="trail-form"
-  method="post"
-  target="trail-upload-iframe"
->
-  <input type="hidden" name="action" value="saveTrailMarkerWithPhoto">
-  <input type="hidden" name="upload_token" id="trail-upload-token">
-  <input type="hidden" name="lat" id="trail-hidden-lat">
-  <input type="hidden" name="lng" id="trail-hidden-lng">
-  <input type="hidden" name="accuracy" id="trail-hidden-accuracy">
-  <input type="hidden" name="status" value="有効">
-  <input type="hidden" name="source" value="現地確認">
+        id="trail-form"
+        method="post"
+        target="trail-upload-iframe"
+      >
+        <input type="hidden" name="action" value="saveTrailMarkerWithPhoto">
+        <input type="hidden" name="upload_token" id="trail-upload-token">
+        <input type="hidden" name="lat" id="trail-hidden-lat">
+        <input type="hidden" name="lng" id="trail-hidden-lng">
+        <input type="hidden" name="accuracy" id="trail-hidden-accuracy">
+        <input type="hidden" name="status" value="有効">
+        <input type="hidden" name="source" value="現地確認">
 
-  <!-- 写真はファイル本体ではなく、圧縮後Base64で送る -->
-  <input type="hidden" name="photo_base64" id="trail-photo-base64">
-  <input type="hidden" name="photo_mime_type" id="trail-photo-mime-type">
-  <input type="hidden" name="photo_original_name" id="trail-photo-original-name">
+        <input type="hidden" name="photo_base64" id="trail-photo-base64">
+        <input type="hidden" name="photo_mime_type" id="trail-photo-mime-type">
+        <input type="hidden" name="photo_original_name" id="trail-photo-original-name">
+
         <div class="trail-latlng-box">
           <div>緯度：<span id="trail-lat-view"></span></div>
           <div>経度：<span id="trail-lng-view"></span></div>
@@ -115,17 +114,17 @@
         </label>
 
         <label>
-  写真
-  <input
-  type="file"
-  id="trail-photo-file"
-  accept="image/*"
-  capture="environment"
->
-  <div id="trail-photo-status" class="trail-photo-status">
-    写真を選択しない場合は、写真なしで保存されます。
-  </div>
-</label>
+          写真
+          <input
+            type="file"
+            id="trail-photo-file"
+            accept="image/*"
+            capture="environment"
+          >
+          <div id="trail-photo-status" class="trail-photo-status">
+            写真を選択しない場合は、写真なしで保存されます。
+          </div>
+        </label>
 
         <label>
           メモ
@@ -140,9 +139,6 @@
     </div>
   </div>
 
-  <!-- 写真アップロード専用：隠しフォーム -->
-  
-
   <iframe
     id="trail-upload-iframe"
     name="trail-upload-iframe"
@@ -153,6 +149,6 @@
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
   </script>
 
-  <script src="app.js?v=photo1"></script>
+  <script src="app.js?v=base64photo1"></script>
 </body>
 </html>
